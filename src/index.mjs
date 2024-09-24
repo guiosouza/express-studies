@@ -35,6 +35,14 @@ app.get("/api/users", (request, response) => {
   response.send(moeckedUsers);
 });
 
+app.post("/api/users", (request, response) => {
+  console.log(request.body);
+  const { body } = request;
+  const newUser = { id: mockedUsers[mockedUsers.length - 1].id + 1, ...body };
+  mockedUsers.push(newUser);
+  return response.status(201).send(newUser);
+});
+
 app.get("/api/exercises", (request, response) => {
   console.log(request.query);
   const {
@@ -50,14 +58,6 @@ app.get("/api/exercises", (request, response) => {
   return response.send(mockedExercises);
 });
 
-app.post("/api/users", (request, response) => {
-  console.log(request.body);
-  const { body } = request;
-  const newUser = { id: mockedUsers[mockedUsers.length - 1].id + 1, ...body };
-  mockedUsers.push(newUser);
-  return response.status(201).send(newUser);
-});
-
 app.get("/api/exercises/:id", (request, response) => {
   console.log(request.params);
   const parsedId = parseInt(request.params.id);
@@ -68,13 +68,40 @@ app.get("/api/exercises/:id", (request, response) => {
       .send({ message: "Bad request, my friend. Invalid ID" });
   }
 
-  const findUser = mockedExercises.find((user) => user.id === parsedId);
+  const findExercise = mockedExercises.find(
+    (exercise) => exercise.id === parsedId
+  );
 
-  if (!findUser) {
+  if (!findExercise) {
     return response.sendStatus(404);
   }
 
-  return response.send(findUser);
+  return response.send(findExercise);
+});
+
+app.put("/api/exercises/:id", (request, response) => {
+  const {
+    body,
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+
+  if (isNaN(parsedId)) {
+    response.sendStatus(400);
+  }
+
+  const findExerciseIndex = mockedExercises.findIndex(
+    (exercise) => exercise.id === parsedId
+  );
+
+  if (findExerciseIndex === -1) {
+    return response.sendStatus(404);
+  }
+
+  mockedExercises[findExerciseIndex] = { id: parsedId, ...body };
+  
+  return response.sendStatus(200);
 });
 
 app.listen(PORT, () => {
