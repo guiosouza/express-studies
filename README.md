@@ -1,2 +1,1 @@
-# express-studies
-API with Express (studies)
+# Express Studies
