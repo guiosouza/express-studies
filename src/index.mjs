@@ -127,7 +127,31 @@ app.patch("/api/exercises/:id", (request, response) => {
     ...body,
   };
 
-  return response.sendStatus(200)
+  return response.sendStatus(200);
+});
+
+app.delete(`/api/exercises/:id`, (request, response) => {
+  const {
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+
+  if (isNaN(parsedId)) {
+    return response.sendStatus(400);
+  }
+
+  const findExerciseIndex = mockedExercises.findIndex(
+    (exercise) => exercise.id === parsedId
+  );
+
+  if (findExerciseIndex === -1) {
+    return response.sendStatus(404);
+  }
+
+  mockedExercises.splice(findExerciseIndex, 1);
+  
+  return response.sendStatus(200);
 });
 
 app.listen(PORT, () => {
