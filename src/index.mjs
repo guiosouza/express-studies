@@ -105,7 +105,29 @@ app.put("/api/exercises/:id", (request, response) => {
 });
 
 app.patch("/api/exercises/:id", (request, response) => {
-  
+  const {
+    body,
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+
+  if (isNaN(parsedId)) {
+    return response.sendStatus(400);
+  }
+
+  const findExerciseIndex = mockedExercises.findIndex(
+    (exercise) => exercise.id === parsedId
+  );
+  if (findExerciseIndex === -1) {
+    return response.sendStatus(404);
+  }
+  mockedExercises[findExerciseIndex] = {
+    ...mockedExercises[findExerciseIndex],
+    ...body,
+  };
+
+  return response.sendStatus(200)
 });
 
 app.listen(PORT, () => {
