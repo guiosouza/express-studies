@@ -6,6 +6,13 @@ dotenv.config();
 
 const app = express();
 
+const logginMiddleware = (request, reponse, next) => {
+  console.log(`${request.method} - ${request.url}`);
+  next();
+};
+
+app.use(logginMiddleware);
+
 app.use(express.json());
 
 const PORT = process.env.PORT || 5555;
@@ -26,6 +33,29 @@ const mockedUsers = [
   { id: 2, username: "aldivio", email: "aldivio@gmail.com" },
   { id: 3, username: "gus", email: "gustavo@gmail.com" },
 ];
+
+const resolveIndexByExerciseId = (request, response, next) => {
+  const {
+    body,
+    params: { id },
+  } = request;
+
+  const parsedId = parseInt(id);
+
+  if (isNaN(parsedId)) {
+    return response.sendStatus(400);
+  }
+
+  const findExerciseIndex = mockedExercises.findIndex(
+    (exercise) => exercise.id === parsedId
+  );
+  if (findExerciseIndex === -1) {
+    return response.sendStatus(404);
+  }
+
+  request.findExerciseIndex = findExerciseIndex;
+  next();
+};
 
 app.get("/", (request, response) => {
   response.status(201).send({ message: "Hello there" });
@@ -79,25 +109,8 @@ app.get("/api/exercises/:id", (request, response) => {
   return response.send(findExercise);
 });
 
-app.put("/api/exercises/:id", (request, response) => {
-  const {
-    body,
-    params: { id },
-  } = request;
-
-  const parsedId = parseInt(id);
-
-  if (isNaN(parsedId)) {
-    response.sendStatus(400);
-  }
-
-  const findExerciseIndex = mockedExercises.findIndex(
-    (exercise) => exercise.id === parsedId
-  );
-
-  if (findExerciseIndex === -1) {
-    return response.sendStatus(404);
-  }
+app.put("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
+  const { body, findExerciseIndex } = request;
 
   mockedExercises[findExerciseIndex] = { id: parsedId, ...body };
 
@@ -150,7 +163,7 @@ app.delete(`/api/exercises/:id`, (request, response) => {
   }
 
   mockedExercises.splice(findExerciseIndex, 1);
-  
+
   return response.sendStatus(200);
 });
 
