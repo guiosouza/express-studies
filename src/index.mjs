@@ -100,8 +100,12 @@ app.put("/api/exercises/:id", (request, response) => {
   }
 
   mockedExercises[findExerciseIndex] = { id: parsedId, ...body };
-  
+
   return response.sendStatus(200);
+});
+
+app.patch("/api/exercises/:id", (request, response) => {
+  
 });
 
 app.listen(PORT, () => {
