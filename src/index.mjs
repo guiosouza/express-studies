@@ -1,5 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
+import { query, validationResult, body, matchedData } from "express-validator";
+import { checkSchema } from "express-validator";
+import { createUserValidationSchema } from "./utils/validationSchemas.mjs";
 
 // loading .env
 dotenv.config();
@@ -34,6 +37,7 @@ const mockedUsers = [
   { id: 3, username: "gus", email: "gustavo@gmail.com" },
 ];
 
+// MIDDLEWARE
 const resolveIndexByExerciseId = (request, response, next) => {
   const {
     body,
@@ -58,14 +62,17 @@ const resolveIndexByExerciseId = (request, response, next) => {
   next();
 };
 
+// ROOT
 app.get("/", (request, response) => {
   response.status(201).send({ message: "Hello there" });
 });
 
+// GET ALL USERS
 app.get("/api/users", (request, response) => {
   response.send(moeckedUsers);
 });
 
+// POST USER
 app.post("/api/users", (request, response) => {
   console.log(request.body);
   const { body } = request;
@@ -74,25 +81,55 @@ app.post("/api/users", (request, response) => {
   return response.status(201).send(newUser);
 });
 
-app.get("/api/exercises", (request, response) => {
-  console.log(request.query);
-  const {
-    query: { filter, value },
-  } = request;
+// GET ALL EXERCISES
+app.get(
+  "/api/exercises",
+  query("filter")
+    .isString()
+    .notEmpty()
+    .withMessage("Must not be empty")
+    .isLength({ min: 3, max: 10 })
+    .withMessage("Must be at least 3-10 characters"),
+  (request, response) => {
+    console.log(request);
+    const {
+      query: { filter, value },
+    } = request;
 
-  if (filter && value) {
-    response.send(
-      mockedExercises.filter((exercise) => exercise[filter].includes(value))
-    );
+    if (filter && value) {
+      response.send(
+        mockedExercises.filter((exercise) => exercise[filter].includes(value))
+      );
+    }
+
+    return response.send(mockedExercises);
+  }
+);
+
+// POST EXERCISE
+app.post("/api/exercises", checkSchema(createUserValidationSchema), (request, response) => {
+  const result = validationResult(request);
+  console.log("result", result);
+  // result.isEmpty() - return true if there is NO any error
+  if (!result.isEmpty()) {
+    return response.status(400).send({ errors: result.array() });
   }
 
-  return response.send(mockedExercises);
+  const data = matchedData(request);
+
+  const newExercise = {
+    id: mockedExercises[mockedExercises.length - 1].id + 1,
+    ...data,
+  };
+  mockedExercises.push(newExercise);
+  return response.status(201).send(newExercise);
 });
 
+// GET ONE EXERCISE
 app.get("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
   const { findExerciseIndex } = request;
 
-  const findExercise = mockedExercises[findExerciseIndex]
+  const findExercise = mockedExercises[findExerciseIndex];
 
   if (!findExercise) {
     return response.sendStatus(404);
@@ -101,6 +138,7 @@ app.get("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
   return response.send(findExercise);
 });
 
+// PUT EXERCISE
 app.put("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
   const { body, findExerciseIndex } = request;
 
@@ -112,6 +150,7 @@ app.put("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
   return response.sendStatus(200);
 });
 
+// PATCH EXERCISE
 app.patch(
   "/api/exercises/:id",
   resolveIndexByExerciseId,
@@ -127,6 +166,7 @@ app.patch(
   }
 );
 
+// DELETE EXERCISE
 app.delete(
   `/api/exercises/:id`,
   resolveIndexByExerciseId,
