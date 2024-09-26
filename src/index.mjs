@@ -49,6 +49,7 @@ const resolveIndexByExerciseId = (request, response, next) => {
   const findExerciseIndex = mockedExercises.findIndex(
     (exercise) => exercise.id === parsedId
   );
+
   if (findExerciseIndex === -1) {
     return response.sendStatus(404);
   }
@@ -88,19 +89,10 @@ app.get("/api/exercises", (request, response) => {
   return response.send(mockedExercises);
 });
 
-app.get("/api/exercises/:id", (request, response) => {
-  console.log(request.params);
-  const parsedId = parseInt(request.params.id);
-  console.log(parsedId);
-  if (isNaN(parsedId)) {
-    return response
-      .status(400)
-      .send({ message: "Bad request, my friend. Invalid ID" });
-  }
+app.get("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
+  const { findExerciseIndex } = request;
 
-  const findExercise = mockedExercises.find(
-    (exercise) => exercise.id === parsedId
-  );
+  const findExercise = mockedExercises[findExerciseIndex]
 
   if (!findExercise) {
     return response.sendStatus(404);
@@ -112,60 +104,40 @@ app.get("/api/exercises/:id", (request, response) => {
 app.put("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
   const { body, findExerciseIndex } = request;
 
-  mockedExercises[findExerciseIndex] = { id: parsedId, ...body };
-
-  return response.sendStatus(200);
-});
-
-app.patch("/api/exercises/:id", (request, response) => {
-  const {
-    body,
-    params: { id },
-  } = request;
-
-  const parsedId = parseInt(id);
-
-  if (isNaN(parsedId)) {
-    return response.sendStatus(400);
-  }
-
-  const findExerciseIndex = mockedExercises.findIndex(
-    (exercise) => exercise.id === parsedId
-  );
-  if (findExerciseIndex === -1) {
-    return response.sendStatus(404);
-  }
   mockedExercises[findExerciseIndex] = {
-    ...mockedExercises[findExerciseIndex],
+    id: mockedExercises[findExerciseIndex].id,
     ...body,
   };
 
   return response.sendStatus(200);
 });
 
-app.delete(`/api/exercises/:id`, (request, response) => {
-  const {
-    params: { id },
-  } = request;
+app.patch(
+  "/api/exercises/:id",
+  resolveIndexByExerciseId,
+  (request, response) => {
+    const { body, findExerciseIndex } = request;
 
-  const parsedId = parseInt(id);
+    mockedExercises[findExerciseIndex] = {
+      ...mockedExercises[findExerciseIndex],
+      ...body,
+    };
 
-  if (isNaN(parsedId)) {
-    return response.sendStatus(400);
+    return response.sendStatus(200);
   }
+);
 
-  const findExerciseIndex = mockedExercises.findIndex(
-    (exercise) => exercise.id === parsedId
-  );
+app.delete(
+  `/api/exercises/:id`,
+  resolveIndexByExerciseId,
+  (request, response) => {
+    const { findExerciseIndex } = request;
 
-  if (findExerciseIndex === -1) {
-    return response.sendStatus(404);
+    mockedExercises.splice(findExerciseIndex, 1);
+
+    return response.sendStatus(200);
   }
-
-  mockedExercises.splice(findExerciseIndex, 1);
-
-  return response.sendStatus(200);
-});
+);
 
 app.listen(PORT, () => {
   console.log("Running on port: " + PORT);
