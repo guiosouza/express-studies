@@ -8,3 +8,10 @@ export const mockedExercises = [
       "Remada curvada. Exercício para as costas realizado com halteres ou barra, no qual o praticante mantém uma posição inclinada com o tronco quase paralelo ao chão e puxa o peso em direção ao abdômen, elevando os cotovelos enquanto mantém as costas retas.",
   },
 ];
+
+export const mockedUsers = [
+  { id: 1, name: "gui", displayName: "Guilherme", password: "ola123456" },
+  { id: 2, name: "gu", displayName: "Gustavo", password: "ola123456" },
+  { id: 3, name: "du", displayName: "Eduardo", password: "ola123456" },
+  { id: 4, name: "divo", displayName: "Aldívio", password: "ola123456" },
+];
