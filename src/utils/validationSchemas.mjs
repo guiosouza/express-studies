@@ -1,4 +1,4 @@
-export const createUserValidationSchema = {
+export const createExerciseValidationSchema = {
   title: {
     isLength: {
       options: {
@@ -18,3 +18,24 @@ export const createUserValidationSchema = {
     notEmpty: true,
   },
 };
+
+export const updateExerciseValidationSchema = {
+  title: {
+    optional: true,  // Permite que o campo seja opcional no PATCH
+    isLength: {
+      options: {
+        min: 3,
+        max: 32,
+      },
+      errorMessage: "Title must be at least 3 with the max of 32 characters",
+    },
+    isString: {
+      errorMessage: "Title must be a string",
+    },
+  },
+  description: {
+    optional: true,  // Permite que o campo seja opcional no PATCH
+    notEmpty: true,
+  },
+};
+

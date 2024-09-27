@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { query, validationResult, body, matchedData } from "express-validator";
 import { checkSchema } from "express-validator";
-import { createUserValidationSchema } from "./utils/validationSchemas.mjs";
+import { createExerciseValidationSchema, updateExerciseValidationSchema } from "./utils/validationSchemas.mjs";
 
 // loading .env
 dotenv.config();
@@ -107,23 +107,27 @@ app.get(
 );
 
 // POST EXERCISE
-app.post("/api/exercises", checkSchema(createUserValidationSchema), (request, response) => {
-  const result = validationResult(request);
-  console.log("result", result);
-  // result.isEmpty() - return true if there is NO any error
-  if (!result.isEmpty()) {
-    return response.status(400).send({ errors: result.array() });
+app.post(
+  "/api/exercises",
+  checkSchema(createExerciseValidationSchema),
+  (request, response) => {
+    const result = validationResult(request);
+    console.log("result", result);
+    // result.isEmpty() - return true if there is NO any error
+    if (!result.isEmpty()) {
+      return response.status(400).send({ errors: result.array() });
+    }
+
+    const data = matchedData(request);
+
+    const newExercise = {
+      id: mockedExercises[mockedExercises.length - 1].id + 1,
+      ...data,
+    };
+    mockedExercises.push(newExercise);
+    return response.status(201).send(newExercise);
   }
-
-  const data = matchedData(request);
-
-  const newExercise = {
-    id: mockedExercises[mockedExercises.length - 1].id + 1,
-    ...data,
-  };
-  mockedExercises.push(newExercise);
-  return response.status(201).send(newExercise);
-});
+);
 
 // GET ONE EXERCISE
 app.get("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
@@ -139,27 +143,45 @@ app.get("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
 });
 
 // PUT EXERCISE
-app.put("/api/exercises/:id", resolveIndexByExerciseId, (request, response) => {
-  const { body, findExerciseIndex } = request;
+app.put(
+  "/api/exercises/:id",
+  resolveIndexByExerciseId,
+  checkSchema(createExerciseValidationSchema),
+  (request, response) => {
+    const result = validationResult(request);
+    if (!result.isEmpty()) {
+      return response.status(400).send({ errors: result.array() });
+    }
 
-  mockedExercises[findExerciseIndex] = {
-    id: mockedExercises[findExerciseIndex].id,
-    ...body,
-  };
+    const data = matchedData(request);
+    const { findExerciseIndex } = request;
 
-  return response.sendStatus(200);
-});
+    mockedExercises[findExerciseIndex] = {
+      id: mockedExercises[findExerciseIndex].id,
+      ...data,
+    };
+
+    return response.sendStatus(200);
+  }
+);
 
 // PATCH EXERCISE
 app.patch(
   "/api/exercises/:id",
   resolveIndexByExerciseId,
+  checkSchema(updateExerciseValidationSchema),  // Validação no PATCH
   (request, response) => {
-    const { body, findExerciseIndex } = request;
+    const result = validationResult(request);
+    if (!result.isEmpty()) {
+      return response.status(400).send({ errors: result.array() });
+    }
+
+    const data = matchedData(request);
+    const { findExerciseIndex } = request;
 
     mockedExercises[findExerciseIndex] = {
       ...mockedExercises[findExerciseIndex],
-      ...body,
+      ...data,
     };
 
     return response.sendStatus(200);
