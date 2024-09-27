@@ -21,7 +21,7 @@ export const createExerciseValidationSchema = {
 
 export const updateExerciseValidationSchema = {
   title: {
-    optional: true,  // Permite que o campo seja opcional no PATCH
+    optional: true, // Permite que o campo seja opcional no PATCH
     isLength: {
       options: {
         min: 3,
@@ -34,22 +34,22 @@ export const updateExerciseValidationSchema = {
     },
   },
   description: {
-    optional: true,  // Permite que o campo seja opcional no PATCH
+    optional: true, // Permite que o campo seja opcional no PATCH
     notEmpty: true,
   },
 };
 
 export const createUserValidationSchema = {
-  name: {
+  username: {
     isLength: {
       options: { min: 3, max: 32 },
-      errorMessage: "Name must be between 3 and 32 characters",
+      errorMessage: "Username must be between 3 and 32 characters",
     },
     notEmpty: {
-      errorMessage: "Name cannot be empty",
+      errorMessage: "Username cannot be empty",
     },
     isString: {
-      errorMessage: "Name must be a string",
+      errorMessage: "Username must be a string",
     },
   },
   displayName: {
@@ -76,24 +76,24 @@ export const createUserValidationSchema = {
 };
 
 export const updateUserValidationSchema = {
-  name: {
+  username: {
     optional: true,
     isLength: {
       options: { min: 3, max: 32 },
-      errorMessage: "Name must be between 3 and 32 characters",
+      errorMessage: "Username must be between 3 and 32 characters",
     },
     isString: {
-      errorMessage: "Name must be a string",
+      errorMessage: "Username must be a string",
     },
   },
   displayName: {
     optional: true,
     isLength: {
       options: { min: 3, max: 32 },
-      errorMessage: "Display name must be between 3 and 32 characters",
+      errorMessage: "Display Username must be between 3 and 32 characters",
     },
     isString: {
-      errorMessage: "Display name must be a string",
+      errorMessage: "Display Username must be a string",
     },
   },
   password: {
@@ -104,5 +104,3 @@ export const updateUserValidationSchema = {
     },
   },
 };
-
-

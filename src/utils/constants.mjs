@@ -10,8 +10,8 @@ export const mockedExercises = [
 ];
 
 export const mockedUsers = [
-  { id: 1, name: "gui", displayName: "Guilherme", password: "ola123456" },
-  { id: 2, name: "gu", displayName: "Gustavo", password: "ola123456" },
-  { id: 3, name: "du", displayName: "Eduardo", password: "ola123456" },
-  { id: 4, name: "divo", displayName: "Aldívio", password: "ola123456" },
+  { id: 1, username: "gui", displayName: "Guilherme", password: "ola123456" },
+  { id: 2, username: "gu", displayName: "Gustavo", password: "ola123456" },
+  { id: 3, username: "du", displayName: "Eduardo", password: "ola123456" },
+  { id: 4, username: "divo", displayName: "Aldívio", password: "ola123456" },
 ];
