@@ -4,6 +4,8 @@ import routes from "./routes/index.mjs";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import { mockedUsers } from "./utils/constants.mjs";
+import passport from "passport";
+import "./strategies/local-strategy.mjs";
 
 // loading .env
 dotenv.config();
@@ -21,7 +23,35 @@ app.use(
     },
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(routes);
+
+app.post("/api/auth", passport.authenticate("local"), (request, response) => {
+  response.sendStatus(200);
+});
+
+app.get("/api/auth/status", (request, response) => {
+  console.log("Inside /auth/status");
+  console.log(request.user);
+  console.log(request.session);
+  return request.user ? response.send(request.user) : response.sendStatus(401);
+});
+
+app.post("/api/auth/logout", (request, response) => {
+  if (!request.user) {
+    response.sendStatus(401);
+  }
+
+  request.logout((error) => {
+    if (error) {
+      return response.sendStatus(400);
+    }
+    return response.send(200);
+  });
+});
 
 const PORT = process.env.PORT || 5555;
 

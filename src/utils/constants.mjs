@@ -14,4 +14,14 @@ export const mockedUsers = [
   { id: 2, username: "gu", displayName: "Gustavo", password: "ola123456" },
   { id: 3, username: "du", displayName: "Eduardo", password: "ola123456" },
   { id: 4, username: "divo", displayName: "Aldívio", password: "ola123456" },
+  { id: 5, username: "bia", displayName: "Beatriz", password: "ola123456" },
+  { id: 6, username: "leo", displayName: "Leonardo", password: "ola123456" },
+  { id: 7, username: "ana", displayName: "Ana", password: "ola123456" },
+  { id: 8, username: "paulo", displayName: "Paulo", password: "ola123456" },
+  { id: 9, username: "lu", displayName: "Lucas", password: "ola123456" },
+  { id: 10, username: "mari", displayName: "Mariana", password: "ola123456" },
+  { id: 11, username: "joao", displayName: "João", password: "ola123456" },
+  { id: 12, username: "julia", displayName: "Júlia", password: "ola123456" },
+  { id: 13, username: "carla", displayName: "Carla", password: "ola123456" }
 ];
+
