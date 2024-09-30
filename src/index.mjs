@@ -6,11 +6,20 @@ import session from "express-session";
 import { mockedUsers } from "./utils/constants.mjs";
 import passport from "passport";
 import "./strategies/local-strategy.mjs";
+import mongoose from "mongoose";
 
 // loading .env
 dotenv.config();
 
 const app = express();
+
+mongoose
+  .connect(process.env.MONGO_URI || "mongodb://root:example@localhost:27017")
+  .then(() => console.log("Connected to the database!"))
+  .catch((error) => console.log(error));
+
+
+
 app.use(express.json());
 app.use(cookieParser("helloWorld"));
 app.use(
