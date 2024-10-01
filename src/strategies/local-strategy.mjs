@@ -1,13 +1,11 @@
 import passport from "passport";
 import { Strategy } from "passport-local";
-import { mockedUsers } from "../utils/constants.mjs";
 import { User } from "../mongoose/schemas/user.mjs";
-import { compareSync } from "bcrypt";
 import { comparePassword } from "../utils/helpers.mjs";
 
 passport.serializeUser((user, done) => {
   console.log("Inside serializedUser");
-  console.log(user);
+  console.log("user: ", user);
   done(null, user.id);
 });
 

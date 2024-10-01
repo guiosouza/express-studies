@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { validationResult, checkSchema, matchedData } from "express-validator";
+import {
+  validationResult,
+  checkSchema,
+  matchedData,
+  query,
+} from "express-validator";
 import { mockedUsers } from "../utils/constants.mjs";
 import { resolveIndexByUserId } from "../utils/middleWares.mjs";
 import {
@@ -7,24 +12,42 @@ import {
   updateUserValidationSchema,
 } from "../utils/validationSchemas.mjs";
 import { User } from "../mongoose/schemas/user.mjs";
-import { hashPassword } from "../utils/helpers.mjs";
+import { hashPassword } from "../utils/helpers.mjs"
 
 const router = Router();
 
 // GET ALL USERS
-router.get("/api/users", (request, response) => {
-  console.log(request.headers.cookie);
-  console.log(request.cookies);
-  console.log("request.signedCookies.hello: ", request.signedCookies.hello);
+router.get(
+  "/api/users",
+  query("filter")
+    .isString()
+    .notEmpty()
+    .withMessage("Must not be empty")
+    .isLength({ min: 3, max: 10 })
+    .withMessage("Must be at least 3-10 characters"),
+  (request, response) => {
+    console.log("request.session.id: ", request.session.id);
 
-  if (request.signedCookies.hello && request.signedCookies.hello === "world") {
+    request.sessionStore.get(request.session.id, (error, sessionData) => {
+      if (error) {
+        console.log("error: ", error);
+        throw error;
+      }
+      console.log("Inside Session Store Get");
+      console.log("sessionData:", sessionData);
+    });
+
+    const {
+      query: { filter, value },
+    } = request;
+
+    if (filter && value) {
+      response.send(mockedUsers.filter((user) => user[filter].includes(value)));
+    }
+
     return response.send(mockedUsers);
   }
-
-  return response
-    .status(403)
-    .send({ message: "Sorry, you need the correct cookie" });
-});
+);
 
 // GET USER BY ID
 router.get("/api/users/:id", resolveIndexByUserId, (request, response) => {
