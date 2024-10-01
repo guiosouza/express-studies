@@ -12,7 +12,8 @@ import {
   updateUserValidationSchema,
 } from "../utils/validationSchemas.mjs";
 import { User } from "../mongoose/schemas/user.mjs";
-import { hashPassword } from "../utils/helpers.mjs"
+import { hashPassword } from "../utils/helpers.mjs";
+import { createUserHandler, getUserByIdHandler } from "../handlers/users.mjs";
 
 const router = Router();
 
@@ -50,41 +51,13 @@ router.get(
 );
 
 // GET USER BY ID
-router.get("/api/users/:id", resolveIndexByUserId, (request, response) => {
-  const { findUserIndex } = request;
-
-  const findUser = mockedUsers[findUserIndex];
-
-  if (!findUser) {
-    return response.sendStatus(404);
-  }
-
-  return response.send(findUser);
-});
+router.get("/api/users/:id", resolveIndexByUserId, getUserByIdHandler);
 
 // CREATE USER
 router.post(
   "/api/users",
   checkSchema(createUserValidationSchema),
-  async (request, response) => {
-    const result = validationResult(request);
-
-    if (!result.isEmpty()) {
-      return response.status(400).send(result.array());
-    }
-
-    const data = matchedData(request);
-    console.log("DATA: ", data);
-    data.password = hashPassword(data.password);
-    const newUser = new User(data);
-    try {
-      const savedUser = await newUser.save();
-      return response.status(201).send(savedUser);
-    } catch (error) {
-      console.log(error);
-      return response.sendStatus(400);
-    }
-  }
+  createUserHandler
 );
 
 // UPDATE USER (PUT)
