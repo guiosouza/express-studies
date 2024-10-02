@@ -26,7 +26,7 @@ app.use(
     saveUninitialized: false,
     resave: false,
     cookie: {
-      maxAge: 60000 * 60,
+      maxAge: 60000 * 60 * 24 * 2,
     },
     store: MongoStore.create({
       client: mongoose.connection.getClient(),
@@ -40,7 +40,7 @@ app.use(passport.session());
 app.use(routes);
 
 app.post("/api/auth", passport.authenticate("local"), (request, response) => {
-  response.sendStatus(200);
+  response.status(200).json({ message: "Usuário logado com sucesso!" });
 });
 
 app.get("/api/auth/status", (request, response) => {
