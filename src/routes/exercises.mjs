@@ -11,65 +11,66 @@ import {
   updateExerciseValidationSchema,
 } from "../utils/validationSchemas.mjs";
 import { resolveIndexByExerciseId } from "../utils/middleWares.mjs";
+import { Exercise } from "../mongoose/schemas/exercise.mjs";
 
 const router = Router();
 
+function isAuthenticated(request, response, next) {
+  if (request.isAuthenticated()) {
+    return next();
+  }
+  return response.sendStatus(401);
+}
+
+// GET ALL EXERCISES
 router.get(
   "/api/exercises",
-  query("filter")
-    .isString()
-    .notEmpty()
-    .withMessage("Must not be empty")
-    .isLength({ min: 3, max: 10 })
-    .withMessage("Must be at least 3-10 characters"),
-  (request, response) => {
-    console.log("request.session.id: ", request.session.id);
-    request.sessionStore.get(request.session.id, (error, sessionData) => {
-      if (error) {
-        console.log("error: ", error);
-        throw error;
+  isAuthenticated,
+  query("filter").isString().optional(),
+  async (request, response) => {
+    try {
+      const { filter, value } = request.query;
+      let exercises;
+
+      if (filter && value) {
+        const query = { [filter]: new RegExp(value, "i") }; // Case-insensitive search
+        exercises = await Exercise.find(query);
+      } else {
+        exercises = await Exercise.find();
       }
-      console.log(sessionData);
-    });
-    console.log("request.sessionStore.get: ");
-    // const result = validationResult(request);
-    // console.log(result);
-    const {
-      query: { filter, value },
-    } = request;
 
-    if (filter && value) {
-      response.send(
-        mockedExercises.filter((exercise) => exercise[filter].includes(value))
-      );
+      response.status(200).send(exercises);
+    } catch (error) {
+      response.status(500).send({ error: "Failed to retrieve exercises" });
     }
-
-    return response.send(mockedExercises);
   }
 );
 
-router.get(
-  "/api/exercises/:id",
-  resolveIndexByExerciseId,
-  (request, response) => {
-    const { findExerciseIndex } = request;
 
-    const findExercise = mockedExercises[findExerciseIndex];
+router.get("/api/exercises/:id", isAuthenticated, async (request, response) => {
+  const { id } = request.params;
 
-    if (!findExercise) {
+  try {
+    const exercise = await Exercise.findById(id);
+
+    if (!exercise) {
       return response.sendStatus(404);
     }
 
-    return response.send(findExercise);
+    return response.status(200).send(exercise);
+  } catch (error) {
+    return response.status(500).send({ error: "Failed to retrieve exercise" });
   }
-);
+});
+
 
 router.post(
   "/api/exercises",
+  isAuthenticated,
   checkSchema(createExerciseValidationSchema),
-  (request, response) => {
+  async (request, response) => {
     const result = validationResult(request);
-    console.log("result", result);
+
     // result.isEmpty() - return true if there is NO any error
     if (!result.isEmpty()) {
       return response.status(400).send({ errors: result.array() });
@@ -79,56 +80,43 @@ router.post(
 
     console.log("Deu matched data: ", data);
 
-    const newExercise = {
-      id: mockedExercises[mockedExercises.length - 1].id + 1,
-      ...data,
-    };
-    mockedExercises.push(newExercise);
-    return response.status(201).send(newExercise);
-  }
-);
-
-router.put(
-  "/api/exercises/:id",
-  resolveIndexByExerciseId,
-  checkSchema(createExerciseValidationSchema),
-  (request, response) => {
-    const result = validationResult(request);
-    if (!result.isEmpty()) {
-      return response.status(400).send({ errors: result.array() });
+    try {
+      const newExercise = new Exercise(data);
+      await newExercise.save();
+      return response.status(201).send(newExercise);
+    } catch (error) {
+      return response.status(500).send({ error: "Failed to create exercise" });
     }
-
-    const data = matchedData(request);
-    const { findExerciseIndex } = request;
-
-    mockedExercises[findExerciseIndex] = {
-      id: mockedExercises[findExerciseIndex].id,
-      ...data,
-    };
-
-    return response.sendStatus(200);
   }
 );
 
 router.patch(
   "/api/exercises/:id",
-  resolveIndexByExerciseId,
-  checkSchema(updateExerciseValidationSchema), // Validação no PATCH
-  (request, response) => {
+  isAuthenticated,
+  checkSchema(updateExerciseValidationSchema),
+  async (request, response) => {
     const result = validationResult(request);
     if (!result.isEmpty()) {
       return response.status(400).send({ errors: result.array() });
     }
 
     const data = matchedData(request);
-    const { findExerciseIndex } = request;
+    const { id } = request.params;
 
-    mockedExercises[findExerciseIndex] = {
-      ...mockedExercises[findExerciseIndex],
-      ...data,
-    };
+    try {
+      const updatedExercise = await Exercise.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+      });
 
-    return response.sendStatus(200);
+      if (!updatedExercise) {
+        return response.sendStatus(404);
+      }
+
+      return response.status(200).send(updatedExercise);
+    } catch (error) {
+      return response.status(500).send({ error: "Failed to update exercise" });
+    }
   }
 );
 

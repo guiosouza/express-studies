@@ -93,8 +93,6 @@ router.patch(
   async (request, response) => {
     const result = validationResult(request);
 
-    console.log("result: ", result);
-
     if (!result.isEmpty()) {
       return response.status(400).send({ errors: result.array() });
     }
