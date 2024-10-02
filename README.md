@@ -2,7 +2,16 @@
 
 A project focused on studying and practicing Express.js, a minimalist web framework for Node.js.
 
+## Table of Contents
+
+- [1. Clone the repository](#1-clone-the-repository)
+- [2. Install Nodemon (dev dependency only)](#2-install-nodemon-dev-dependency-only)
+- [3. Install all dependencies](#3-install-all-dependencies)
+- [4. Running the Project](#4-running-the-project)
+- [5. Setting up the Database with Docker](#5-setting-up-the-database-with-docker)
+
 ## Getting Started
+
 
 ### 1. Clone the repository
 
@@ -45,10 +54,13 @@ For a normal run (without Nodemon):
 ```bash
 npm start
 ```
+<br>
 
 ### 5. Setting up the Database with Docker
 
 To run the database using Docker, ensure that you have Docker and Docker Compose installed on your machine.
+
+<br>
 
 #### 5.1. Start the Database
 
@@ -57,8 +69,7 @@ In the root directory of the project, where the `docker-compose.yml` file is loc
 ```bash
 docker-compose up -d
 ```
-
-This will create and start the database container in detached mode (`-d`), running in the background.
+<br>
 
 #### 5.2. Check if the Database is Running
 
@@ -69,6 +80,8 @@ docker ps
 ```
 
 You should see the database container listed.
+
+<br>
 
 #### 5.3. Stop the Database
 
