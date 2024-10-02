@@ -75,7 +75,6 @@ router.get(
   }
 );
 
-
 // GET USER BY ID
 router.get("/api/users/:id", resolveIndexByUserId, getUserByIdHandler);
 
@@ -86,51 +85,41 @@ router.post(
   createUserHandler
 );
 
-// UPDATE USER (PUT)
-router.put(
-  "/api/users/:id",
-  resolveIndexByUserId,
-  checkSchema(createUserValidationSchema),
-  (request, response) => {
-    const result = validationResult(request);
-
-    if (!result.isEmpty()) {
-      return response.status(400).send({ errors: result.array() });
-    }
-
-    const data = matchedData(request);
-    const { findUserIndex } = request;
-
-    mockedUsers[findUserIndex] = {
-      id: mockedUsers[findUserIndex].id,
-      ...data,
-    };
-
-    return response.sendStatus(200);
-  }
-);
-
 // PARTIAL UPDATE USER (PATCH)
 router.patch(
   "/api/users/:id",
   resolveIndexByUserId,
   checkSchema(updateUserValidationSchema),
-  (request, response) => {
+  async (request, response) => {
     const result = validationResult(request);
+
+    console.log("result: ", result);
 
     if (!result.isEmpty()) {
       return response.status(400).send({ errors: result.array() });
     }
 
-    const data = matchedData(request);
-    const { findUserIndex } = request;
+    let data = matchedData(request); // Validated data
+    const user = request.user; // User found by the middleware
 
-    mockedUsers[findUserIndex] = {
-      ...mockedUsers[findUserIndex],
-      ...data,
-    };
+    if (data.password) {
+      data.password = hashPassword(data.password);
+    }
 
-    return response.sendStatus(200);
+    try {
+      const updatedUser = await User.findByIdAndUpdate(user._id, data, {
+        new: true, // Retorn the document updated
+        runValidators: true, // Apply the schema validations
+      });
+
+      if (!updatedUser) {
+        return response.status(404).send({ error: "User not found." });
+      }
+
+      return response.status(200).send(updatedUser);
+    } catch (error) {
+      return response.status(500).send({ error: "Error updating user." });
+    }
   }
 );
 
