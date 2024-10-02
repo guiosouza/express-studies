@@ -5,13 +5,12 @@ import {
   checkSchema,
   matchedData,
 } from "express-validator";
-import { mockedExercises } from "../utils/constants.mjs";
 import {
   createExerciseValidationSchema,
   updateExerciseValidationSchema,
 } from "../utils/validationSchemas.mjs";
-import { resolveIndexByExerciseId } from "../utils/middleWares.mjs";
 import { Exercise } from "../mongoose/schemas/exercise.mjs";
+import { resolveExerciseById } from "../utils/middleWares.mjs";
 
 const router = Router();
 
@@ -22,20 +21,22 @@ function isAuthenticated(request, response, next) {
   return response.sendStatus(401);
 }
 
-// GET ALL EXERCISES
+// GET ALL EXERCISES with optional title filter
 router.get(
   "/api/exercises",
   isAuthenticated,
-  query("filter").isString().optional(),
+  query("title").optional().isString(), // Filtro por título é opcional
   async (request, response) => {
     try {
-      const { filter, value } = request.query;
+      const { title } = request.query;
       let exercises;
 
-      if (filter && value) {
-        const query = { [filter]: new RegExp(value, "i") }; // Case-insensitive search
+      // Se "title" for fornecido, faz uma busca com regex
+      if (title) {
+        const query = { title: new RegExp(title, "i") }; // Busca por correspondência parcial e case-insensitive
         exercises = await Exercise.find(query);
       } else {
+        // Se "title" não for fornecido, busca todos os exercícios
         exercises = await Exercise.find();
       }
 
@@ -46,20 +47,9 @@ router.get(
   }
 );
 
-router.get("/api/exercises/:id", isAuthenticated, async (request, response) => {
-  const { id } = request.params;
 
-  try {
-    const exercise = await Exercise.findById(id);
-
-    if (!exercise) {
-      return response.sendStatus(404);
-    }
-
-    return response.status(200).send(exercise);
-  } catch (error) {
-    return response.status(500).send({ error: "Failed to retrieve exercise" });
-  }
+router.get("/api/exercises/:id", isAuthenticated, resolveExerciseById, (request, response) => {
+  return response.status(200).send(request.exercise);
 });
 
 router.post(
@@ -121,21 +111,16 @@ router.patch(
 router.delete(
   "/api/exercises/:id",
   isAuthenticated,
+  resolveExerciseById,
   async (request, response) => {
-    const { id } = request.params;
-
     try {
-      const deletedExercise = await Exercise.findByIdAndDelete(id);
-
-      if (!deletedExercise) {
-        return response.sendStatus(404);
-      }
-
+      await request.exercise.deleteOne(); // Deleta o exercício encontrado no middleware
       return response.sendStatus(200);
     } catch (error) {
       return response.status(500).send({ error: "Failed to delete exercise" });
     }
   }
 );
+
 
 export default router;
