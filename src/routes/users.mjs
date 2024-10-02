@@ -124,12 +124,30 @@ router.patch(
 );
 
 // DELETE USER
-router.delete("/api/users/:id", resolveIndexByUserId, (request, response) => {
-  const { findUserIndex } = request;
+router.delete(
+  "/api/users/:id",
+  resolveIndexByUserId,
+  async (request, response) => {
+    try {
+      // Usuário já foi encontrado no middleware resolveIndexByUserId
+      const user = request.user;
 
-  mockedUsers.splice(findUserIndex, 1);
+      // Verifica se o usuário está autenticado
+      if (!request.user) {
+        return response.sendStatus(401); // Não autorizado
+      }
 
-  return response.sendStatus(200);
-});
+      // Exclui o usuário do banco de dados
+      await User.findByIdAndDelete(user._id);
+
+      return response
+        .status(200)
+        .json({ message: `User ${user.username} was successfully deleted.` });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return response.status(500).json({ error: "Error deleting user." });
+    }
+  }
+);
 
 export default router;
