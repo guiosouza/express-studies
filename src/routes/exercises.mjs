@@ -46,7 +46,6 @@ router.get(
   }
 );
 
-
 router.get("/api/exercises/:id", isAuthenticated, async (request, response) => {
   const { id } = request.params;
 
@@ -62,7 +61,6 @@ router.get("/api/exercises/:id", isAuthenticated, async (request, response) => {
     return response.status(500).send({ error: "Failed to retrieve exercise" });
   }
 });
-
 
 router.post(
   "/api/exercises",
@@ -121,14 +119,22 @@ router.patch(
 );
 
 router.delete(
-  `/api/exercises/:id`,
-  resolveIndexByExerciseId,
-  (request, response) => {
-    const { findExerciseIndex } = request;
+  "/api/exercises/:id",
+  isAuthenticated,
+  async (request, response) => {
+    const { id } = request.params;
 
-    mockedExercises.splice(findExerciseIndex, 1);
+    try {
+      const deletedExercise = await Exercise.findByIdAndDelete(id);
 
-    return response.sendStatus(200);
+      if (!deletedExercise) {
+        return response.sendStatus(404);
+      }
+
+      return response.sendStatus(200);
+    } catch (error) {
+      return response.status(500).send({ error: "Failed to delete exercise" });
+    }
   }
 );
 
