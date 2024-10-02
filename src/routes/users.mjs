@@ -21,34 +21,60 @@ const router = Router();
 router.get(
   "/api/users",
   query("filter")
+    .optional()
     .isString()
-    .notEmpty()
-    .withMessage("Must not be empty")
+    .withMessage("Must be a string")
     .isLength({ min: 3, max: 10 })
-    .withMessage("Must be at least 3-10 characters"),
-  (request, response) => {
-    console.log("request.session.id: ", request.session.id);
-
-    request.sessionStore.get(request.session.id, (error, sessionData) => {
-      if (error) {
-        console.log("error: ", error);
-        throw error;
+    .withMessage("Must be between 3-10 characters"),
+  async (request, response) => {
+    try {
+      // Verifica se o usuário está autenticado
+      if (!request.user) {
+        return response.sendStatus(401); // Não autorizado
       }
-      console.log("Inside Session Store Get");
-      console.log("sessionData:", sessionData);
-    });
 
-    const {
-      query: { filter, value },
-    } = request;
+      // Obtém o filtro e o valor da query
+      const { filter, value } = request.query;
 
-    if (filter && value) {
-      response.send(mockedUsers.filter((user) => user[filter].includes(value)));
+      // Inicializa o objeto query
+      let query = {};
+
+      // Se houver filtro e valor, aplica o filtro na query
+      if (filter && value) {
+        if (filter === "username") {
+          query.username = { $regex: value, $options: "i" };
+        } else if (filter === "displayName") {
+          query.displayName = { $regex: value, $options: "i" };
+        } else {
+          return response.status(400).send({
+            message:
+              "Invalid filter. Supported filters are 'username' and 'displayName'.",
+          });
+        }
+
+        // Busca os usuários filtrados
+        const users = await User.find(query);
+
+        if (users.length === 0) {
+          return response.status(404).send({
+            message: "No users found for the given filter.",
+          });
+        }
+
+        // Retorna os usuários encontrados
+        return response.json(users);
+      } else {
+        // Se não houver filtro, retorna todos os usuários
+        const users = await User.find();
+        return response.json(users);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return response.status(500).send("Internal server error");
     }
-
-    return response.send(mockedUsers);
   }
 );
+
 
 // GET USER BY ID
 router.get("/api/users/:id", resolveIndexByUserId, getUserByIdHandler);

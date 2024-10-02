@@ -68,13 +68,3 @@ const PORT = process.env.PORT || 5555;
 app.listen(PORT, () => {
   console.log("Running on port: " + PORT);
 });
-
-app.get("/", (request, response) => {
-  console.log("request.session :", request.session);
-  console.log("request.session.id :", request.session.id);
-
-  request.session.visited = true;
-
-  response.cookie("hello", "world", { maxAge: 3600000, signed: true });
-  response.status(201).send({ message: "Hello there" });
-});

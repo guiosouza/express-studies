@@ -4,16 +4,12 @@ import { hashPassword } from "../utils/helpers.mjs";
 import { User } from "../mongoose/schemas/user.mjs";
 
 export const getUserByIdHandler = (request, response) => {
-  const { findUserIndex } = request;
+  // O usuário já foi encontrado e adicionado à requisição
+  const { user } = request;
 
-  const findUser = mockedUsers[findUserIndex];
-
-  if (!findUser) {
-    return response.sendStatus(404);
-  }
-
-  return response.send(findUser);
+  return response.status(200).send(user);
 };
+
 
 export const createUserHandler = async (request, response) => {
   const result = validationResult(request);
